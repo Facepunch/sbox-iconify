@@ -107,7 +107,7 @@ public class IconifyPanel : Panel
 			iconContents = iconContents.Replace(" width=\"1em\" height=\"1em\"", ""); // HACK
 
 			// this API doesn't actually return a 404 status code, so check the document for '404' itself...
-			if ( iconContents == "404" )
+			if (iconContents == "404")
 			{
 				Log.Error($"Failed to fetch icon {iconPath}");
 				return "";
@@ -126,7 +126,7 @@ public class IconifyPanel : Panel
 
 		_svgTexture = Texture.White;
 
-		FetchIconAsync(Icon).ContinueWith( task =>
+		FetchIconAsync(Icon).ContinueWith(task =>
 		{
 			var basePath = task.Result;
 			Log.Info($"Fetched {basePath}");
