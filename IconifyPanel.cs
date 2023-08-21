@@ -124,6 +124,7 @@ public class IconifyPanel : Panel
 		if (!_dirty)
 			return;
 
+		_dirty = false;
 		_svgTexture = Texture.White;
 
 		FetchIconAsync(Icon).ContinueWith(task =>
@@ -141,8 +142,6 @@ public class IconifyPanel : Panel
 
 			var path = basePath + pathParams;
 			_svgTexture = Texture.Load(FileSystem.Data, path);
-
-			_dirty = false;
 		});
 	}
 }
