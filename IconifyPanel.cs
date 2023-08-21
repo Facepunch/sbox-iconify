@@ -129,6 +129,9 @@ public class IconifyPanel : Panel
 		FetchIconAsync(Icon).ContinueWith(task =>
 		{
 			var basePath = task.Result;
+			if (string.IsNullOrEmpty(basePath))
+                return;
+
 			Log.Info($"Fetched {basePath}");
 
 			var color = Parent?.ComputedStyle?.FontColor?.Hex ?? "#ffffff";
