@@ -17,6 +17,9 @@ public class IconifyPanel : Panel
 		get => _icon;
 		set
 		{
+			if (_icon == value)
+				return;
+
 			_icon = value;
 			_dirty = true;
 		}
