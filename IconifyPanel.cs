@@ -26,10 +26,9 @@ public class IconifyPanel : Panel
 	{
 		StyleSheet.Parse("""
 		IconifyPanel, iconify {
-			width: 32px;
-			height: 32px;
+			height: 16px;
+			aspect-ratio: 1;
 			align-self: center;
-			top: -1px;
 		    padding: 0 8px;
 		}
 
@@ -59,9 +58,14 @@ public class IconifyPanel : Panel
 		return (pack, name);
 	}
 
-	public override void OnLayout(ref Rect layoutRect)
+	protected override void OnAfterTreeRender(bool firstTime)
 	{
 		SetIcon();
+	}
+
+	public override void OnLayout(ref Rect layoutRect)
+	{
+		_dirty = true;
 	}
 
 	public override void SetProperty(string name, string value)
