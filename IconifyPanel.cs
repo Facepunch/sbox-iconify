@@ -134,7 +134,7 @@ public class IconifyPanel : Panel
 		{
 			var basePath = task.Result;
 			if (string.IsNullOrEmpty(basePath))
-                return;
+				return;
 
 			Log.Info($"Fetched {basePath}");
 
