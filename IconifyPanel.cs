@@ -1,4 +1,3 @@
-using Sandbox.Utility.Svg;
 using System;
 using System.IO;
 
@@ -8,10 +7,10 @@ namespace Sandbox.UI;
 public class IconifyPanel : Panel
 {
 	private Texture _svgTexture;
-	private const bool UseCloud = true;
 
 	private bool _dirty = false;
 	private string _icon = "";
+
 	public string Icon
 	{
 		get => _icon;
@@ -25,17 +24,6 @@ public class IconifyPanel : Panel
 	public IconifyPanel()
 	{
 		StyleSheet.Parse("""
-		SvgPanel {
-			width: 16px;
-			height: 16px;
-
-			background-size-x: 100%;
-			align-self: center;
-			
-			top: -1px;
-		    padding: 0 8px;
-		}
-
 		IconifyPanel, iconify {
 			width: 32px;
 			height: 32px;
@@ -70,13 +58,6 @@ public class IconifyPanel : Panel
 		return (pack, name);
 	}
 
-	protected override void OnAfterTreeRender(bool firstTime)
-	{
-		base.OnAfterTreeRender(firstTime);
-
-		SetIcon();
-	}
-
 	public override void OnLayout(ref Rect layoutRect)
 	{
 		base.OnLayout(ref layoutRect);
@@ -102,11 +83,9 @@ public class IconifyPanel : Panel
 		Graphics.DrawQuad(Box.Rect, Material.UI.Basic, Color.White);
 	}
 
-	public override void DrawContent(ref RenderState state)
-	{
-		base.DrawContent(ref state);
-	}
-
+	/// <summary>
+	/// Fetches the icon - if it doesn't exist on disk, it will fetch it for you.
+	/// </summary>
 	private string FetchIcon(string iconPath)
 	{
 		var (pack, name) = ParseIcon(iconPath);
@@ -124,23 +103,26 @@ public class IconifyPanel : Panel
 			iconContents = iconContents.Replace(" width=\"1em\" height=\"1em\"", ""); // HACK
 
 			FileSystem.Data.WriteAllText(localPath, iconContents);
-
-			Log.Info(iconContents);
 		}
-		
-		return localPath + "?color=#000000&w=32&h=32";
+
+		return localPath;
 	}
 
 	private void SetIcon()
 	{
 		if (!_dirty)
 			return;
-		
-		var path = FetchIcon(Icon);
+
+		var basePath = FetchIcon(Icon);
+
+		var color = Parent?.ComputedStyle?.FontColor?.Hex ?? "#ffffff";
+		var width = Box.Rect.Width;
+		var height = Box.Rect.Height;
+		var pathParams = $"?color={color}&w={width}&h={height}";
+
+		var path = basePath + pathParams;
 		_svgTexture = Texture.Load(FileSystem.Data, path);
 
-		Log.Info(_svgTexture.Size);
-		
 		_dirty = false;
 	}
 }
