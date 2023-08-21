@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace Sandbox.UI;
 
@@ -60,8 +61,6 @@ public class IconifyPanel : Panel
 
 	public override void OnLayout(ref Rect layoutRect)
 	{
-		base.OnLayout(ref layoutRect);
-
 		SetIcon();
 	}
 
@@ -86,7 +85,7 @@ public class IconifyPanel : Panel
 	/// <summary>
 	/// Fetches the icon - if it doesn't exist on disk, it will fetch it for you.
 	/// </summary>
-	private string FetchIcon(string iconPath)
+	private async Task<string> FetchIconAsync(string iconPath)
 	{
 		var (pack, name) = ParseIcon(iconPath);
 		var localPath = $"iconify/{pack}/{name}.svg";
@@ -99,8 +98,16 @@ public class IconifyPanel : Panel
 			FileSystem.Data.CreateDirectory(directory);
 
 			var remotePath = $"https://api.iconify.design/{pack}/{name}.svg";
-			var iconContents = Http.RequestAsync("GET", remotePath).Result.Content.ReadAsStringAsync().Result;
+			var response = await Http.RequestAsync("GET", remotePath);
+			var iconContents = await response.Content.ReadAsStringAsync();
 			iconContents = iconContents.Replace(" width=\"1em\" height=\"1em\"", ""); // HACK
+
+			// this API doesn't actually return a 404 status code, so check the document for '404' itself...
+			if ( iconContents == "404" )
+			{
+				Log.Error($"Failed to fetch icon {iconPath}");
+				return "";
+			}
 
 			FileSystem.Data.WriteAllText(localPath, iconContents);
 		}
@@ -113,16 +120,22 @@ public class IconifyPanel : Panel
 		if (!_dirty)
 			return;
 
-		var basePath = FetchIcon(Icon);
+		_svgTexture = Texture.White;
 
-		var color = Parent?.ComputedStyle?.FontColor?.Hex ?? "#ffffff";
-		var width = Box.Rect.Width;
-		var height = Box.Rect.Height;
-		var pathParams = $"?color={color}&w={width}&h={height}";
+		FetchIconAsync(Icon).ContinueWith( task =>
+		{
+			var basePath = task.Result;
+			Log.Info($"Fetched {basePath}");
 
-		var path = basePath + pathParams;
-		_svgTexture = Texture.Load(FileSystem.Data, path);
+			var color = Parent?.ComputedStyle?.FontColor?.Hex ?? "#ffffff";
+			var width = Box.Rect.Width;
+			var height = Box.Rect.Height;
+			var pathParams = $"?color={color}&w={width}&h={height}";
 
-		_dirty = false;
+			var path = basePath + pathParams;
+			_svgTexture = Texture.Load(FileSystem.Data, path);
+
+			_dirty = false;
+		});
 	}
 }
