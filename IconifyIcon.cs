@@ -14,7 +14,7 @@ public struct IconifyIcon
 	public bool IsTintable { get; private set; }
 
 	private readonly string Url => $"https://api.iconify.design/{Prefix}/{Name}.svg";
-	private readonly string LocalPath => $"iconify/{Prefix}/{Name}.svg";
+	private readonly string LocalPath => $"{Prefix}/{Name}.svg";
 
 	private async Task<string> FetchImageDataAsync()
 	{
