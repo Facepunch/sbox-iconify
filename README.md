@@ -5,7 +5,7 @@
 ## Usage
 
 ```html
-<iconify name="ic:baseline-add-location" />
+<iconify icon="ic:baseline-add-location" />
 ```
 
 Full list of icons at [icones](https://icones.js.org/).
