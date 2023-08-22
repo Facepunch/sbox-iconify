@@ -48,15 +48,15 @@ public class IconifyPanel : Panel
 	private (string Pack, string Name) ParseIcon( string icon )
 	{
 		if ( !icon.Contains( ':' ) )
-			throw new ArgumentException( "_name must be in the format 'pack:name'" );
+			throw new ArgumentException( $"Icon must be in the format 'pack:name', got '{icon}'" );
 
 		var splitName = icon.Split( ':', StringSplitOptions.RemoveEmptyEntries );
 
 		if ( splitName.Length != 2 )
-			throw new ArgumentException( "_name must be in the format 'pack:name'" );
+			throw new ArgumentException( $"Icon must be in the format 'pack:name', got '{icon}'" );
 
-		var pack = splitName[0];
-		var name = splitName[1];
+		var pack = splitName[0].Trim();
+		var name = splitName[1].Trim();
 
 		return (pack, name);
 	}
