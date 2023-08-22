@@ -1,6 +1,4 @@
 using System;
-using System.IO;
-using System.Threading.Tasks;
 
 namespace Sandbox.UI;
 
@@ -45,22 +43,6 @@ public class IconifyPanel : Panel
 		""" );
 	}
 
-	private (string Pack, string Name) ParseIcon( string icon )
-	{
-		if ( !icon.Contains( ':' ) )
-			throw new ArgumentException( $"Icon must be in the format 'pack:name', got '{icon}'" );
-
-		var splitName = icon.Split( ':', StringSplitOptions.RemoveEmptyEntries );
-
-		if ( splitName.Length != 2 )
-			throw new ArgumentException( $"Icon must be in the format 'pack:name', got '{icon}'" );
-
-		var pack = splitName[0].Trim();
-		var name = splitName[1].Trim();
-
-		return (pack, name);
-	}
-
 	protected override void OnAfterTreeRender( bool firstTime )
 	{
 		SetIcon();
@@ -88,40 +70,7 @@ public class IconifyPanel : Panel
 		Graphics.Attributes.SetCombo( "D_BLENDMODE", BlendMode.Normal );
 		Graphics.DrawQuad( Box.Rect, Material.UI.Basic, Color.White );
 	}
-
-	/// <summary>
-	/// Fetches the icon - if it doesn't exist on disk, it will fetch it for you.
-	/// </summary>
-	private async Task<string> FetchIconAsync( string iconPath )
-	{
-		var (pack, name) = ParseIcon( iconPath );
-		var localPath = $"iconify/{pack}/{name}.svg";
-
-		if ( !FileSystem.Data.FileExists( localPath ) )
-		{
-			Log.Info( $"Cache miss for icon '{iconPath}', fetching from API..." );
-
-			var directory = Path.GetDirectoryName( localPath );
-			FileSystem.Data.CreateDirectory( directory );
-
-			var remotePath = $"https://api.iconify.design/{pack}/{name}.svg";
-			var response = await Http.RequestAsync( "GET", remotePath );
-			var iconContents = await response.Content.ReadAsStringAsync();
-			iconContents = iconContents.Replace( " width=\"1em\" height=\"1em\"", "" ); // HACK
-
-			// this API doesn't actually return a 404 status code, so check the document for '404' itself...
-			if ( iconContents == "404" )
-			{
-				Log.Error( $"Failed to fetch icon {iconPath}" );
-				return "";
-			}
-
-			FileSystem.Data.WriteAllText( localPath, iconContents );
-		}
-
-		return localPath;
-	}
-
+	
 	private void SetIcon()
 	{
 		if ( !_dirty )
@@ -130,21 +79,13 @@ public class IconifyPanel : Panel
 		_dirty = false;
 		_svgTexture = Texture.White;
 
-		FetchIconAsync( Icon ).ContinueWith( task =>
+		var icon = new IconifyIcon( _icon );
+		var rect = Box.Rect;
+		var tintColor = Parent?.ComputedStyle?.FontColor?.Hex;
+		
+		icon.LoadTextureAsync( rect, tintColor ).ContinueWith( ( task ) =>
 		{
-			var basePath = task.Result;
-			if ( string.IsNullOrEmpty( basePath ) )
-				return;
-
-			Log.Info( $"Fetched {basePath}" );
-
-			var color = Parent?.ComputedStyle?.FontColor?.Hex ?? "#ffffff";
-			var width = Box.Rect.Width;
-			var height = Box.Rect.Height;
-			var pathParams = $"?color={color}&w={width}&h={height}";
-
-			var path = basePath + pathParams;
-			_svgTexture = Texture.Load( FileSystem.Data, path );
+			_svgTexture = task.Result;
 		} );
 	}
 }
