@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace Sandbox.UI;
 
-[Alias( "iconify" )]
+[Alias( "iconify", "iconify-icon" )]
 public class IconifyPanel : Panel
 {
 	private Texture _svgTexture;
@@ -28,7 +28,7 @@ public class IconifyPanel : Panel
 	public IconifyPanel()
 	{
 		StyleSheet.Parse( """
-		IconifyPanel, iconify {
+		IconifyPanel, iconify, iconify-icon {
 			height: 16px;
 			aspect-ratio: 1;
 			align-self: center;
