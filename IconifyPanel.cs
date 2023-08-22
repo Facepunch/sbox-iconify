@@ -74,8 +74,8 @@ public class IconifyPanel : Panel
 	public override void SetProperty( string name, string value )
 	{
 		base.SetProperty( name, value );
-
-		if ( name.Equals( "icon", StringComparison.OrdinalIgnoreCase ) )
+		
+		if ( name.Equals( "icon", StringComparison.OrdinalIgnoreCase ) || name.Equals( "name", StringComparison.OrdinalIgnoreCase ) )
 			Icon = value;
 	}
 
