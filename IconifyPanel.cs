@@ -117,7 +117,7 @@ public class IconifyPanel : Panel
 		var rect = Box.Rect;
 		var tintColor = ComputedStyle?.FontColor;
 		
-		icon.LoadTextureAsync( cacheFs, rect, tintColor ).ContinueWith( ( task ) =>
+		icon.LoadTextureAsync( CacheFileSystem, rect, tintColor ).ContinueWith( ( task ) =>
 		{
 			_svgTexture = task.Result;
 		} );
