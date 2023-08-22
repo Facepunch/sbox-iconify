@@ -37,33 +37,33 @@ public struct IconifyIcon
 		return content.Replace( " width=\"1em\" height=\"1em\"", "" );
 	}
 
-	public async Task EnsureIconDataIsCachedAsync()
+	public async Task EnsureIconDataIsCachedAsync( BaseFileSystem fs )
 	{
-		if ( !FileSystem.Data.FileExists( LocalPath ) )
+		if ( !fs.FileExists( LocalPath ) )
 		{
 			Log.Info( $"Cache miss for icon '{this}', fetching from API..." );
 
 			var directory = Path.GetDirectoryName( LocalPath );
-			FileSystem.Data.CreateDirectory( directory );
+			fs.CreateDirectory( directory );
 
 			var iconContents = await FetchImageDataAsync();
-			FileSystem.Data.WriteAllText( LocalPath, iconContents );
+			fs.WriteAllText( LocalPath, iconContents );
 		}
 	}
 
-	public async Task<Texture> LoadTextureAsync( Rect rect, Color? tintColor )
+	public async Task<Texture> LoadTextureAsync( BaseFileSystem fs, Rect rect, Color? tintColor )
 	{
-		await EnsureIconDataIsCachedAsync();
+		await EnsureIconDataIsCachedAsync( fs );
 
 		// HACK: Check whether this icon is tintable based on whether it references CSS currentColor
-		var imageData = await FileSystem.Data.ReadAllTextAsync( LocalPath );
+		var imageData = await fs.ReadAllTextAsync( LocalPath );
 		IsTintable = imageData.Contains( "currentColor" );
 
 		var pathParams = BuildPathParams( rect, tintColor );
 		var path = LocalPath + pathParams;
 
 		Log.Info( $"Fetching {path}" );
-		return Texture.Load( FileSystem.Data, path );
+		return Texture.Load( fs, path );
 	}
 
 	private string BuildPathParams( Rect rect, Color? tintColor )

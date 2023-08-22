@@ -5,6 +5,9 @@ namespace Sandbox.UI;
 [Alias( "iconify", "iconify-icon" )]
 public class IconifyPanel : Panel
 {
+	public static readonly BaseFileSystem DefaultCache = FileSystem.Data;
+
+	private readonly BaseFileSystem cacheFs;
 	private Texture _svgTexture;
 
 	private bool _dirty = false;
@@ -23,8 +26,14 @@ public class IconifyPanel : Panel
 		}
 	}
 
-	public IconifyPanel()
+	public IconifyPanel() : this( DefaultCache )
 	{
+	}
+
+	public IconifyPanel( BaseFileSystem cacheFs )
+	{
+		this.cacheFs = cacheFs;
+
 		StyleSheet.Parse( """
 		IconifyPanel, iconify, iconify-icon {
 			height: 16px;
@@ -83,7 +92,7 @@ public class IconifyPanel : Panel
 		var rect = Box.Rect;
 		var tintColor = Parent?.ComputedStyle?.FontColor?.Hex;
 		
-		icon.LoadTextureAsync( rect, tintColor ).ContinueWith( ( task ) =>
+		icon.LoadTextureAsync( cacheFs, rect, tintColor ).ContinueWith( ( task ) =>
 		{
 			_svgTexture = task.Result;
 		} );
