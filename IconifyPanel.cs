@@ -81,7 +81,7 @@ public class IconifyPanel : Panel
 
 		var icon = new IconifyIcon( _icon );
 		var rect = Box.Rect;
-		var tintColor = Parent?.ComputedStyle?.FontColor?.Hex;
+		var tintColor = ComputedStyle?.FontColor;
 		
 		icon.LoadTextureAsync( rect, tintColor ).ContinueWith( ( task ) =>
 		{
