@@ -79,7 +79,7 @@ public struct IconifyIcon
 		pathParamsBuilder.Append( $"w={width}&h={height}" );
 		return pathParamsBuilder.ToString();
 	}
-	
+
 	public IconifyIcon( string path )
 	{
 		if ( !path.Contains( ':' ) )

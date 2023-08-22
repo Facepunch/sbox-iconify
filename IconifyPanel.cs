@@ -7,11 +7,12 @@ public class IconifyPanel : Panel
 {
 	public static readonly BaseFileSystem DefaultCache;
 
-	private readonly BaseFileSystem cacheFs;
 	private Texture _svgTexture;
 
 	private bool _dirty = false;
 	private string _icon = "";
+
+	public BaseFileSystem CacheFileSystem { get; set; }
 
 	public string Icon
 	{
@@ -41,7 +42,7 @@ public class IconifyPanel : Panel
 
 	public IconifyPanel( BaseFileSystem cacheFs )
 	{
-		this.cacheFs = cacheFs;
+		CacheFileSystem = cacheFs;
 
 		StyleSheet.Parse( """
 		IconifyPanel, iconify, iconify-icon {
@@ -74,9 +75,24 @@ public class IconifyPanel : Panel
 	public override void SetProperty( string name, string value )
 	{
 		base.SetProperty( name, value );
-		
+
 		if ( name.Equals( "icon", StringComparison.OrdinalIgnoreCase ) || name.Equals( "name", StringComparison.OrdinalIgnoreCase ) )
 			Icon = value;
+	}
+
+	public override void SetPropertyObject( string name, object value )
+	{
+		base.SetPropertyObject( name, value );
+
+		if ( !name.Equals( "cache", StringComparison.OrdinalIgnoreCase ) &&
+			!name.Equals( "cachefs", StringComparison.OrdinalIgnoreCase ) &&
+			!name.Equals( "cachefilesystem", StringComparison.OrdinalIgnoreCase ) )
+			return;
+
+		if ( value is not BaseFileSystem fs )
+			throw new ArgumentException( $"Did not receive a {nameof( BaseFileSystem )} value to cache property", nameof( value ) );
+
+		CacheFileSystem = fs;
 	}
 
 	public override void DrawBackground( ref RenderState state )
@@ -88,7 +104,7 @@ public class IconifyPanel : Panel
 		Graphics.Attributes.SetCombo( "D_BLENDMODE", BlendMode.Normal );
 		Graphics.DrawQuad( Box.Rect, Material.UI.Basic, Color.White );
 	}
-	
+
 	private void SetIcon()
 	{
 		if ( !_dirty )
