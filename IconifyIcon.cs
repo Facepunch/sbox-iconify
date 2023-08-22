@@ -56,7 +56,7 @@ public struct IconifyIcon
 		await EnsureIconDataIsCachedAsync();
 
 		// HACK: Check whether this icon is tintable based on whether it references CSS currentColor
-		var imageData = FileSystem.Data.ReadAllText( LocalPath );
+		var imageData = await FileSystem.Data.ReadAllTextAsync( LocalPath );
 		IsTintable = imageData.Contains( "currentColor" );
 
 		var pathParams = BuildPathParams( rect, tintColor );
