@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace Sandbox.UI;
 
-[Alias("iconify")]
+[Alias( "iconify" )]
 public class IconifyPanel : Panel
 {
 	private Texture _svgTexture;
@@ -17,6 +17,9 @@ public class IconifyPanel : Panel
 		get => _icon;
 		set
 		{
+			if ( _icon == value )
+				return;
+
 			_icon = value;
 			_dirty = true;
 		}
@@ -24,7 +27,7 @@ public class IconifyPanel : Panel
 
 	public IconifyPanel()
 	{
-		StyleSheet.Parse("""
+		StyleSheet.Parse( """
 		IconifyPanel, iconify {
 			height: 16px;
 			aspect-ratio: 1;
@@ -39,18 +42,18 @@ public class IconifyPanel : Panel
 		IconifyPanel:last-child, iconify:last-child {
 		    padding-right: 0;
 		}
-		""");
+		""" );
 	}
 
-	private (string Pack, string Name) ParseIcon(string icon)
+	private (string Pack, string Name) ParseIcon( string icon )
 	{
-		if (!icon.Contains(':'))
-			throw new ArgumentException("_name must be in the format 'pack:name'");
+		if ( !icon.Contains( ':' ) )
+			throw new ArgumentException( "_name must be in the format 'pack:name'" );
 
-		var splitName = icon.Split(':', StringSplitOptions.RemoveEmptyEntries);
+		var splitName = icon.Split( ':', StringSplitOptions.RemoveEmptyEntries );
 
-		if (splitName.Length != 2)
-			throw new ArgumentException("_name must be in the format 'pack:name'");
+		if ( splitName.Length != 2 )
+			throw new ArgumentException( "_name must be in the format 'pack:name'" );
 
 		var pack = splitName[0];
 		var name = splitName[1];
@@ -58,62 +61,62 @@ public class IconifyPanel : Panel
 		return (pack, name);
 	}
 
-	protected override void OnAfterTreeRender(bool firstTime)
+	protected override void OnAfterTreeRender( bool firstTime )
 	{
 		SetIcon();
 	}
 
-	public override void OnLayout(ref Rect layoutRect)
+	public override void OnLayout( ref Rect layoutRect )
 	{
 		_dirty = true;
 	}
 
-	public override void SetProperty(string name, string value)
+	public override void SetProperty( string name, string value )
 	{
-		base.SetProperty(name, value);
+		base.SetProperty( name, value );
 
-		if (name.Equals("icon", StringComparison.OrdinalIgnoreCase))
+		if ( name.Equals( "icon", StringComparison.OrdinalIgnoreCase ) )
 			Icon = value;
 	}
 
-	public override void DrawBackground(ref RenderState state)
+	public override void DrawBackground( ref RenderState state )
 	{
-		base.DrawBackground(ref state);
+		base.DrawBackground( ref state );
 
-		Graphics.Attributes.Set("LayerMat", Matrix.Identity);
-		Graphics.Attributes.Set("Texture", _svgTexture);
-		Graphics.Attributes.SetCombo("D_BLENDMODE", BlendMode.Normal);
-		Graphics.DrawQuad(Box.Rect, Material.UI.Basic, Color.White);
+		Graphics.Attributes.Set( "LayerMat", Matrix.Identity );
+		Graphics.Attributes.Set( "Texture", _svgTexture );
+		Graphics.Attributes.SetCombo( "D_BLENDMODE", BlendMode.Normal );
+		Graphics.DrawQuad( Box.Rect, Material.UI.Basic, Color.White );
 	}
 
 	/// <summary>
 	/// Fetches the icon - if it doesn't exist on disk, it will fetch it for you.
 	/// </summary>
-	private async Task<string> FetchIconAsync(string iconPath)
+	private async Task<string> FetchIconAsync( string iconPath )
 	{
-		var (pack, name) = ParseIcon(iconPath);
+		var (pack, name) = ParseIcon( iconPath );
 		var localPath = $"iconify/{pack}/{name}.svg";
 
-		if (!FileSystem.Data.FileExists(localPath))
+		if ( !FileSystem.Data.FileExists( localPath ) )
 		{
-			Log.Info($"Cache miss for icon '{iconPath}', fetching from API...");
+			Log.Info( $"Cache miss for icon '{iconPath}', fetching from API..." );
 
-			var directory = Path.GetDirectoryName(localPath);
-			FileSystem.Data.CreateDirectory(directory);
+			var directory = Path.GetDirectoryName( localPath );
+			FileSystem.Data.CreateDirectory( directory );
 
 			var remotePath = $"https://api.iconify.design/{pack}/{name}.svg";
-			var response = await Http.RequestAsync("GET", remotePath);
+			var response = await Http.RequestAsync( "GET", remotePath );
 			var iconContents = await response.Content.ReadAsStringAsync();
-			iconContents = iconContents.Replace(" width=\"1em\" height=\"1em\"", ""); // HACK
+			iconContents = iconContents.Replace( " width=\"1em\" height=\"1em\"", "" ); // HACK
 
 			// this API doesn't actually return a 404 status code, so check the document for '404' itself...
-			if (iconContents == "404")
+			if ( iconContents == "404" )
 			{
-				Log.Error($"Failed to fetch icon {iconPath}");
+				Log.Error( $"Failed to fetch icon {iconPath}" );
 				return "";
 			}
 
-			FileSystem.Data.WriteAllText(localPath, iconContents);
+			FileSystem.Data.WriteAllText( localPath, iconContents );
 		}
 
 		return localPath;
@@ -121,15 +124,19 @@ public class IconifyPanel : Panel
 
 	private void SetIcon()
 	{
-		if (!_dirty)
+		if ( !_dirty )
 			return;
 
+		_dirty = false;
 		_svgTexture = Texture.White;
 
-		FetchIconAsync(Icon).ContinueWith(task =>
+		FetchIconAsync( Icon ).ContinueWith( task =>
 		{
 			var basePath = task.Result;
-			Log.Info($"Fetched {basePath}");
+			if ( string.IsNullOrEmpty( basePath ) )
+				return;
+
+			Log.Info( $"Fetched {basePath}" );
 
 			var color = Parent?.ComputedStyle?.FontColor?.Hex ?? "#ffffff";
 			var width = Box.Rect.Width;
@@ -137,9 +144,7 @@ public class IconifyPanel : Panel
 			var pathParams = $"?color={color}&w={width}&h={height}";
 
 			var path = basePath + pathParams;
-			_svgTexture = Texture.Load(FileSystem.Data, path);
-
-			_dirty = false;
-		});
+			_svgTexture = Texture.Load( FileSystem.Data, path );
+		} );
 	}
 }
