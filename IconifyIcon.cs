@@ -73,7 +73,10 @@ public struct IconifyIcon
 		if ( IsTintable && tintColor.HasValue )
 			pathParamsBuilder.Append( $"color={tintColor.Value.Hex}&" );
 
-		pathParamsBuilder.Append( $"w={rect.Width}&h={rect.Height}" );
+		var width = Math.Max( 32, rect.Width );
+		var height = Math.Max( 32, rect.Height );
+
+		pathParamsBuilder.Append( $"w={width}&h={height}" );
 		return pathParamsBuilder.ToString();
 	}
 	
