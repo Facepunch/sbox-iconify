@@ -18,8 +18,6 @@ public struct IconifyIcon
 
 	private async Task<string> FetchImageDataAsync()
 	{
-		Log.Info( $"FetchImageData" );
-
 		var response = await Http.RequestAsync( "GET", Url );
 		var iconContents = await response.Content.ReadAsStringAsync();
 
@@ -41,8 +39,6 @@ public struct IconifyIcon
 	{
 		if ( !fs.FileExists( LocalPath ) )
 		{
-			Log.Info( $"Cache miss for icon '{this}', fetching from API..." );
-
 			var directory = Path.GetDirectoryName( LocalPath );
 			fs.CreateDirectory( directory );
 
@@ -61,8 +57,7 @@ public struct IconifyIcon
 
 		var pathParams = BuildPathParams( rect, tintColor );
 		var path = LocalPath + pathParams;
-
-		Log.Info( $"Fetching {path}" );
+    
 		return Texture.Load( fs, path );
 	}
 
