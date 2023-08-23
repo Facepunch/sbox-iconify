@@ -89,6 +89,12 @@ public struct IconifyIcon
 		Name = splitName[1].Trim();
 	}
 
+	public IconifyIcon( string prefix, string name )
+	{
+		Prefix = prefix;
+		Name = name;
+	}
+
 	public static implicit operator IconifyIcon( string path ) => new IconifyIcon( path );
 
 	public override string ToString()
