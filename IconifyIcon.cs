@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Iconify;
+using System;
 using System.IO;
 using System.Net;
 using System.Text;
@@ -47,8 +48,9 @@ public struct IconifyIcon
 		}
 	}
 
-	public async Task<Texture> LoadTextureAsync( BaseFileSystem fs, Rect rect, Color? tintColor )
+	public async Task<Texture> LoadTextureAsync( Rect rect, Color? tintColor )
 	{
+		var fs = IconifyOptions.Current.CacheFileSystem;
 		await EnsureIconDataIsCachedAsync( fs );
 
 		// HACK: Check whether this icon is tintable based on whether it references CSS currentColor

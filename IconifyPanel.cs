@@ -12,8 +12,6 @@ public class IconifyPanel : Panel
 	private bool _dirty = false;
 	private string _icon = "";
 
-	public BaseFileSystem CacheFileSystem { get; set; }
-
 	public string Icon
 	{
 		get => _icon;
@@ -36,14 +34,8 @@ public class IconifyPanel : Panel
 		DefaultCache = FileSystem.Data.CreateSubSystem( "iconify" );
 	}
 
-	public IconifyPanel() : this( DefaultCache )
+	public IconifyPanel()
 	{
-	}
-
-	public IconifyPanel( BaseFileSystem cacheFs )
-	{
-		CacheFileSystem = cacheFs;
-
 		StyleSheet.Parse( """
 		IconifyPanel, iconify, iconify-icon {
 			height: 16px;
@@ -80,21 +72,6 @@ public class IconifyPanel : Panel
 			Icon = value;
 	}
 
-	public override void SetPropertyObject( string name, object value )
-	{
-		base.SetPropertyObject( name, value );
-
-		if ( !name.Equals( "cache", StringComparison.OrdinalIgnoreCase ) &&
-			!name.Equals( "cachefs", StringComparison.OrdinalIgnoreCase ) &&
-			!name.Equals( "cachefilesystem", StringComparison.OrdinalIgnoreCase ) )
-			return;
-
-		if ( value is not BaseFileSystem fs )
-			throw new ArgumentException( $"Did not receive a {nameof( BaseFileSystem )} value to cache property", nameof( value ) );
-
-		CacheFileSystem = fs;
-	}
-
 	public override void DrawBackground( ref RenderState state )
 	{
 		base.DrawBackground( ref state );
@@ -117,7 +94,7 @@ public class IconifyPanel : Panel
 		var rect = Box.Rect;
 		var tintColor = ComputedStyle?.FontColor;
 		
-		icon.LoadTextureAsync( CacheFileSystem, rect, tintColor ).ContinueWith( ( task ) =>
+		icon.LoadTextureAsync( rect, tintColor ).ContinueWith( ( task ) =>
 		{
 			_svgTexture = task.Result;
 		} );
