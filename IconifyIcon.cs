@@ -4,6 +4,7 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 
 namespace Sandbox.UI;
 
@@ -14,7 +15,8 @@ public struct IconifyIcon
 
 	public bool IsTintable { get; private set; }
 
-	private readonly string Url => $"https://api.iconify.design/{Prefix}/{Name}.svg";
+  private readonly string WidthParam => HttpUtility.UrlEncode( "width=100%" );
+	private readonly string Url => $"https://api.iconify.design/{Prefix}/{Name}.svg?{WidthParam}";
 	private readonly string LocalPath => $"{Prefix}/{Name}.svg";
 
 	private async Task<string> FetchImageDataAsync()
@@ -25,15 +27,8 @@ public struct IconifyIcon
 		// this API doesn't actually return a 404 status code :( check the document for '404' itself...
 		if ( response.StatusCode == HttpStatusCode.NotFound || iconContents == "404" )
 			throw new Exception( $"Failed to fetch icon {this}" );
-
-		iconContents = RemoveHardCodedDimensions( iconContents );
+		
 		return iconContents;
-	}
-
-	private string RemoveHardCodedDimensions( string content )
-	{
-		// HACK: the API always returns an SVG with a hard-coded width/height, we don't want that right now
-		return content.Replace( " width=\"1em\" height=\"1em\"", "" );
 	}
 
 	public async Task EnsureIconDataIsCachedAsync( BaseFileSystem fs )
