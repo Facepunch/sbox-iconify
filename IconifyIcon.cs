@@ -20,7 +20,7 @@ public struct IconifyIcon
 
 	private async Task<string> FetchImageDataAsync()
 	{
-		var response = await Http.RequestAsync( "GET", Url );
+		var response = await Http.RequestAsync( Url, "GET" );
 		var iconContents = await response.Content.ReadAsStringAsync();
 
 		// this API doesn't actually return a 404 status code :( check the document for '404' itself...
