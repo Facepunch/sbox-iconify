@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Iconify;
+using System;
 using System.IO;
 using System.Net;
 using System.Text;
@@ -14,9 +15,9 @@ public struct IconifyIcon
 
 	public bool IsTintable { get; private set; }
 
-	private readonly string WidthParam => HttpUtility.UrlEncode( "width=100%" );
+  private readonly string WidthParam => HttpUtility.UrlEncode( "width=100%" );
 	private readonly string Url => $"https://api.iconify.design/{Prefix}/{Name}.svg?{WidthParam}";
-	private readonly string LocalPath => $"iconify/{Prefix}/{Name}.svg";
+	private readonly string LocalPath => $"{Prefix}/{Name}.svg";
 
 	private async Task<string> FetchImageDataAsync()
 	{
@@ -30,30 +31,31 @@ public struct IconifyIcon
 		return iconContents;
 	}
 
-	public async Task EnsureIconDataIsCachedAsync()
+	public async Task EnsureIconDataIsCachedAsync( BaseFileSystem fs )
 	{
-		if ( !FileSystem.Data.FileExists( LocalPath ) )
+		if ( !fs.FileExists( LocalPath ) )
 		{
 			var directory = Path.GetDirectoryName( LocalPath );
-			FileSystem.Data.CreateDirectory( directory );
+			fs.CreateDirectory( directory );
 
 			var iconContents = await FetchImageDataAsync();
-			FileSystem.Data.WriteAllText( LocalPath, iconContents );
+			fs.WriteAllText( LocalPath, iconContents );
 		}
 	}
 
 	public async Task<Texture> LoadTextureAsync( Rect rect, Color? tintColor )
 	{
-		await EnsureIconDataIsCachedAsync();
+		var fs = IconifyOptions.Current.CacheFileSystem;
+		await EnsureIconDataIsCachedAsync( fs );
 
 		// HACK: Check whether this icon is tintable based on whether it references CSS currentColor
-		var imageData = FileSystem.Data.ReadAllText( LocalPath );
+		var imageData = await fs.ReadAllTextAsync( LocalPath );
 		IsTintable = imageData.Contains( "currentColor" );
 
 		var pathParams = BuildPathParams( rect, tintColor );
 		var path = LocalPath + pathParams;
-		
-		return Texture.Load( FileSystem.Data, path );
+    
+		return Texture.Load( fs, path );
 	}
 
 	private string BuildPathParams( Rect rect, Color? tintColor )
@@ -69,7 +71,7 @@ public struct IconifyIcon
 		pathParamsBuilder.Append( $"w={width}&h={height}" );
 		return pathParamsBuilder.ToString();
 	}
-	
+
 	public IconifyIcon( string path )
 	{
 		if ( !path.Contains( ':' ) )

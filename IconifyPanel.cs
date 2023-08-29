@@ -5,6 +5,8 @@ namespace Sandbox.UI;
 [Alias( "iconify", "iconify-icon" )]
 public class IconifyPanel : Panel
 {
+	public static readonly BaseFileSystem DefaultCache;
+
 	private Texture _svgTexture;
 
 	private bool _dirty = false;
@@ -21,6 +23,15 @@ public class IconifyPanel : Panel
 			_icon = value;
 			_dirty = true;
 		}
+	}
+
+	static IconifyPanel()
+	{
+		if ( FileSystem.Data is null )
+			return;
+
+		FileSystem.Data.CreateDirectory( "iconify" );
+		DefaultCache = FileSystem.Data.CreateSubSystem( "iconify" );
 	}
 
 	public IconifyPanel()
@@ -56,7 +67,7 @@ public class IconifyPanel : Panel
 	public override void SetProperty( string name, string value )
 	{
 		base.SetProperty( name, value );
-		
+
 		if ( name.Equals( "icon", StringComparison.OrdinalIgnoreCase ) || name.Equals( "name", StringComparison.OrdinalIgnoreCase ) )
 			Icon = value;
 	}
@@ -70,7 +81,7 @@ public class IconifyPanel : Panel
 		Graphics.Attributes.SetCombo( "D_BLENDMODE", BlendMode.Normal );
 		Graphics.DrawQuad( Box.Rect, Material.UI.Basic, Color.White );
 	}
-	
+
 	private void SetIcon()
 	{
 		if ( !_dirty )
