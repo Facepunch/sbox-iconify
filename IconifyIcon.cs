@@ -15,14 +15,15 @@ public struct IconifyIcon
 
 	public bool IsTintable { get; private set; }
 
-  private readonly string WidthParam => HttpUtility.UrlEncode( "width=100%" );
-	private readonly string Url => $"https://api.iconify.design/{Prefix}/{Name}.svg?{WidthParam}";
-	private readonly string LocalPath => $"{Prefix}/{Name}.svg";
+	private readonly string Url => $"https://api.iconify.design/{Prefix}/{Name}.svg?width=100%";
+	private readonly string LocalPath => $"iconify/{Prefix}/{Name}.svg";
 
 	private async Task<string> FetchImageDataAsync()
 	{
 		var response = await Http.RequestAsync( Url, "GET" );
 		var iconContents = await response.Content.ReadAsStringAsync();
+
+		Log.Trace( Url );
 
 		// this API doesn't actually return a 404 status code :( check the document for '404' itself...
 		if ( response.StatusCode == HttpStatusCode.NotFound || iconContents == "404" )

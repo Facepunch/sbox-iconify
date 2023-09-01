@@ -96,6 +96,7 @@ public class IconifyPanel : Panel
 		
 		icon.LoadTextureAsync( rect, tintColor ).ContinueWith( ( task ) =>
 		{
+			Log.Trace( $"Loaded icon {task.Result.ResourcePath}" );
 			_svgTexture = task.Result;
 		} );
 	}
