@@ -1,5 +1,6 @@
 ﻿using Iconify;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Text;
@@ -10,13 +11,16 @@ namespace Sandbox.UI;
 
 public struct IconifyIcon
 {
+	public const int CurrentVersion = 1;
+
 	public string Prefix { get; private set; }
 	public string Name { get; private set; }
 
 	public bool IsTintable { get; private set; }
 
 	private readonly string Url => $"https://api.iconify.design/{Prefix}/{Name}.svg?width=100%";
-	private readonly string LocalPath => $"iconify/{Prefix}/{Name}.svg";
+	private readonly string LocalPath => $"{Prefix}/{Name}.svg";
+	private readonly string MetadataPath => $"{Prefix}/{Name}.json";
 
 	private async Task<string> FetchImageDataAsync()
 	{
@@ -32,15 +36,41 @@ public struct IconifyIcon
 		return iconContents;
 	}
 
+	private string FetchMetadata()
+	{
+		var metadata = new IconMetadata()
+		{
+			Version = CurrentVersion,
+			TimeFetched = DateTime.Now
+		};
+
+		return Json.Serialize( metadata );
+	}
+
 	public async Task EnsureIconDataIsCachedAsync( BaseFileSystem fs )
 	{
-		if ( !fs.FileExists( LocalPath ) )
+		bool shouldFetch = !fs.FileExists( LocalPath );
+		
+		if ( fs.FileExists( MetadataPath ) )
+		{
+			var metadata = fs.ReadJson<IconMetadata>( MetadataPath );
+			shouldFetch &= (metadata.Version != CurrentVersion);
+		}
+		else
+		{
+			shouldFetch = true;
+		}
+
+		if ( shouldFetch )
 		{
 			var directory = Path.GetDirectoryName( LocalPath );
 			fs.CreateDirectory( directory );
 
 			var iconContents = await FetchImageDataAsync();
 			fs.WriteAllText( LocalPath, iconContents );
+
+			var metadataContents = FetchMetadata();
+			fs.WriteAllText( MetadataPath, metadataContents );
 		}
 	}
 
